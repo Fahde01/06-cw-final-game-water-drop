@@ -45,6 +45,8 @@ body {
     display: flex;
     justify-content: space-between;  /* Space between score and button */
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
     width: 800px;
     padding: 10px;
     background-color: #fff;
@@ -105,6 +107,33 @@ body {
     flex: 0 1 auto;  /* Don't grow, can shrink, auto basis */
     font-size: 24px;
     font-weight: bold;
+}
+
+.goal {
+    font-size: 24px;
+    font-weight: bold;
+    color: #159A48;
+}
+
+.difficulty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #131313;
+}
+
+#difficulty {
+    padding: 6px 10px;
+    border: 1px solid #cdd6dd;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 16px;
+}
+
+#difficulty:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .water-drop {

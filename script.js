@@ -6,29 +6,75 @@ let confettiCleanupTimeout;
 let score = 0;
 let timeLeft = 30;
 
+const difficultySettings = {
+  easy: {
+    winScore: 10,
+    timeLimit: 40,
+    spawnInterval: 1200,
+    fallDurationRange: [4.4, 5.2],
+    challengeChance: 0.15,
+    challengePenalty: -1
+  },
+  normal: {
+    winScore: 15,
+    timeLimit: 30,
+    spawnInterval: 1000,
+    fallDurationRange: [3.6, 4.4],
+    challengeChance: 0.25,
+    challengePenalty: -1
+  },
+  hard: {
+    winScore: 20,
+    timeLimit: 22,
+    spawnInterval: 700,
+    fallDurationRange: [2.4, 3.2],
+    challengeChance: 0.35,
+    challengePenalty: -2
+  }
+};
+
+let currentDifficulty = difficultySettings.normal;
+
 const scoreDisplay = document.getElementById("score");
 const timeDisplay = document.getElementById("time");
 const gameContainer = document.getElementById("game-container");
 const endMessageElement = document.getElementById("end-message");
+const difficultySelect = document.getElementById("difficulty");
+const goalDisplay = document.getElementById("goal");
 
 // Wait for button click to start the game
 document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("reset-btn").addEventListener("click", resetGame);
+difficultySelect.addEventListener("change", applyDifficultyPreview);
+
+function applyDifficultyPreview() {
+  const selected = difficultySettings[difficultySelect.value] || difficultySettings.normal;
+  currentDifficulty = selected;
+
+  if (!gameRunning) {
+    timeLeft = selected.timeLimit;
+    timeDisplay.textContent = timeLeft;
+    goalDisplay.textContent = selected.winScore;
+  }
+}
 
 function startGame() {
   // Prevent multiple games from running at once
   if (gameRunning) return;
 
+  currentDifficulty = difficultySettings[difficultySelect.value] || difficultySettings.normal;
   gameRunning = true;
+  difficultySelect.disabled = true;
   score = 0;
-  timeLeft = 30;
+  timeLeft = currentDifficulty.timeLimit;
   scoreDisplay.textContent = score;
   timeDisplay.textContent = timeLeft;
+  goalDisplay.textContent = currentDifficulty.winScore;
   endMessageElement.classList.add("hidden");
   clearConfetti();
 
-  // Create new drops every second (1000 milliseconds)
-  dropMaker = setInterval(createDrop, 1000);
+  // Create drops at a pace set by the selected difficulty.
+  dropMaker = setInterval(createDrop, currentDifficulty.spawnInterval);
 
   // Run a 30-second countdown and stop the game at 0
   timerCountdown = setInterval(() => {
@@ -45,11 +91,14 @@ function resetGame() {
   clearInterval(dropMaker);
   clearInterval(timerCountdown);
   gameRunning = false;
+  difficultySelect.disabled = false;
   gameContainer.querySelectorAll(".water-drop").forEach((drop) => drop.remove());
   score = 0;
-  timeLeft = 30;
+  currentDifficulty = difficultySettings[difficultySelect.value] || difficultySettings.normal;
+  timeLeft = currentDifficulty.timeLimit;
   scoreDisplay.textContent = score;
   timeDisplay.textContent = timeLeft;
+  goalDisplay.textContent = currentDifficulty.winScore;
   endMessageElement.classList.add("hidden");
   clearConfetti();
 
@@ -90,8 +139,8 @@ function createDrop() {
   const drop = document.createElement("div");
   drop.className = "water-drop";
 
-  // About 1 in 4 drops are challenge drops that subtract points.
-  const isChallengeDrop = Math.random() < 0.25;
+  // Challenge drop frequency increases with difficulty.
+  const isChallengeDrop = Math.random() < currentDifficulty.challengeChance;
   if (isChallengeDrop) {
     drop.classList.add("challenge-drop");
   }
@@ -108,8 +157,10 @@ function createDrop() {
   const xPosition = Math.random() * (gameWidth - 60);
   drop.style.left = xPosition + "px";
 
-  // Make drops fall for 4 seconds
-  drop.style.animationDuration = "4s";
+  // Harder modes make drops fall faster.
+  const [minFallDuration, maxFallDuration] = currentDifficulty.fallDurationRange;
+  const fallDuration = minFallDuration + Math.random() * (maxFallDuration - minFallDuration);
+  drop.style.animationDuration = `${fallDuration}s`;
 
   // Add the new drop to the game screen
   gameContainer.appendChild(drop);
@@ -118,7 +169,7 @@ function createDrop() {
   drop.addEventListener(
     "click",
     () => {
-      score += isChallengeDrop ? -1 : 1;
+      score += isChallengeDrop ? currentDifficulty.challengePenalty : 1;
       scoreDisplay.textContent = score;
       drop.remove();
     },
@@ -133,6 +184,7 @@ function createDrop() {
 
 function endGame() {
   gameRunning = false;
+  difficultySelect.disabled = false;
   clearInterval(dropMaker);
   clearInterval(timerCountdown);
   gameContainer.querySelectorAll(".water-drop").forEach((drop) => drop.remove());
@@ -144,7 +196,7 @@ function endGame() {
     "This is too easy for you"
   ];
   
-  if (score >= 15) {
+  if (score >= currentDifficulty.winScore) {
     // Show a random winning message
     const randomMessage = winningMessages[Math.floor(Math.random() * winningMessages.length)];
     endMessageElement.textContent = randomMessage;
@@ -152,10 +204,12 @@ function endGame() {
     launchConfetti();
   } else {
     // Show try again message
-    endMessageElement.textContent = "Try again!";
+    endMessageElement.textContent = `Try again! Reach ${currentDifficulty.winScore} points.`;
     endMessageElement.classList.remove("winning");
     clearConfetti();
   }
   
   endMessageElement.classList.remove("hidden");
 }
+
+applyDifficultyPreview();
