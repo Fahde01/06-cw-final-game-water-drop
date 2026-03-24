@@ -6,6 +6,13 @@ let confettiCleanupTimeout;
 let score = 0;
 let timeLeft = 30;
 
+const soundEffects = {
+  collect: { src: "sounds/collect.mp3", volume: 0.35 },
+  miss: { src: "sounds/miss.mp3", volume: 0.35 },
+  button: { src: "sounds/click.mp3", volume: 0.45 },
+  win: { src: "sounds/win.mp3", volume: 0.4 }
+};
+
 const difficultySettings = {
   easy: {
     winScore: 10,
@@ -41,10 +48,36 @@ const gameContainer = document.getElementById("game-container");
 const endMessageElement = document.getElementById("end-message");
 const difficultySelect = document.getElementById("difficulty");
 const goalDisplay = document.getElementById("goal");
+const startButton = document.getElementById("start-btn");
+const resetButton = document.getElementById("reset-btn");
+
+Object.values(soundEffects).forEach((effect) => {
+  effect.audio = new Audio(effect.src);
+  effect.audio.preload = "auto";
+});
+
+function playSound(name) {
+  const effect = soundEffects[name];
+  if (!effect || !effect.audio) return;
+
+  const clip = effect.audio.cloneNode();
+  clip.volume = effect.volume;
+  clip.play().catch(() => {
+    // Ignore autoplay block errors to keep gameplay uninterrupted.
+  });
+}
 
 // Wait for button click to start the game
-document.getElementById("start-btn").addEventListener("click", startGame);
-document.getElementById("reset-btn").addEventListener("click", resetGame);
+startButton.addEventListener("click", () => {
+  playSound("button");
+  startGame();
+});
+
+resetButton.addEventListener("click", () => {
+  playSound("button");
+  resetGame();
+});
+
 difficultySelect.addEventListener("change", applyDifficultyPreview);
 
 function applyDifficultyPreview() {
@@ -171,6 +204,7 @@ function createDrop() {
     () => {
       score += isChallengeDrop ? currentDifficulty.challengePenalty : 1;
       scoreDisplay.textContent = score;
+      playSound("collect");
       drop.remove();
     },
     { once: true }
@@ -178,6 +212,7 @@ function createDrop() {
 
   // Remove drops that reach the bottom (weren't clicked)
   drop.addEventListener("animationend", () => {
+    playSound("miss");
     drop.remove(); // Clean up drops that weren't caught
   });
 }
@@ -201,6 +236,7 @@ function endGame() {
     const randomMessage = winningMessages[Math.floor(Math.random() * winningMessages.length)];
     endMessageElement.textContent = randomMessage;
     endMessageElement.classList.add("winning");
+    playSound("win");
     launchConfetti();
   } else {
     // Show try again message

@@ -216,6 +216,21 @@ body {
     display: none;
 }
 
+.site-footer {
+    margin-top: 6px;
+    text-align: center;
+}
+
+.site-footer a {
+    color: #2E9DF7;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    text-decoration: underline;
+}
+
 .confetti-piece {
     position: fixed;
     top: -20px;

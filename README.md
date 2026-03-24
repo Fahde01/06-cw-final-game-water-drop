@@ -44,3 +44,14 @@ Here’s what you're required to implement to bring the game to life:
 These are the minimum requirements, but if you'd like an additional challenge go ahead and give the LevelUps a shot! For example, you can set up logic to make some of the drops "bad" drops that remove points if the user click them, complete with a different color to distinguish them from "good" drops. Have fun and make the game your own!
 
 If you have any questions or need any assistance with your code, reach out to the HelpHub or attend a Drop-In Hour. You got this!!
+
+## Added Sound Effects
+
+The game now includes sound effects for:
+
+- Collecting a drop
+- Missing a drop
+- Clicking Start/Reset buttons
+- Winning the game
+
+Audio files are stored in `sounds/` and were downloaded from Mixkit's free sound library.
